@@ -43,7 +43,7 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             padding: 30px;
             width: 90%;
-            max-width: 700px;
+            max-width: 800px;
             margin-top: 25px;
         }
 
@@ -79,10 +79,20 @@
         }
 
         /* -------- Images -------- */
+        .image-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        .image-container div {
+            flex: 1 1 45%;
+            margin: 10px;
+        }
         img {
-            max-width: 85%;
+            width: 100%;
             height: auto;
-            margin-top: 15px;
             border-radius: 15px;
             box-shadow: 0 6px 18px rgba(0,0,0,0.2);
         }
@@ -128,19 +138,27 @@
             <button type="submit">Upload & Segment</button>
         </form>
 
-        {% if uploaded_image %}
-            <h2>📷 Uploaded Image</h2>
-            <img src="{{ uploaded_image }}" alt="Uploaded Image">
+        {% if uploaded_image or predicted_image %}
+        <div class="image-container">
+            {% if uploaded_image %}
+            <div>
+                <h2>📷 Uploaded Image</h2>
+                <img src="{{ uploaded_image }}" alt="Uploaded Image">
+            </div>
+            {% endif %}
+
+            {% if predicted_image %}
+            <div>
+                <h2>🖼 Segmented Output</h2>
+                <img src="{{ predicted_image }}" alt="Segmented Image">
+            </div>
+            {% endif %}
+        </div>
         {% endif %}
 
         {% if prediction %}
             <h2>🧠 Model Prediction</h2>
             <p><strong>Detected:</strong> {{ prediction }}</p>
-        {% endif %}
-
-        {% if predicted_image %}
-            <h2>🖼 Segmented Output</h2>
-            <img src="{{ predicted_image }}" alt="Segmented Image">
         {% endif %}
     </div>
 </body>
