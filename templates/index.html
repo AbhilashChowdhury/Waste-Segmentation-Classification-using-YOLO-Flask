@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Waste Segmentation & Classification using YOLOv8</title>
+    <style>
+        /* -------- Global Styling -------- */
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #222;
+            text-align: center;
+            padding: 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #2b6777;
+            background: #ffffffa8;
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #204051;
+            margin-top: 40px;
+        }
+
+        /* -------- Card Container -------- */
+        .card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            width: 90%;
+            max-width: 700px;
+            margin-top: 25px;
+        }
+
+        /* -------- Form Section -------- */
+        form {
+            margin-top: 15px;
+        }
+        input[type="file"] {
+            padding: 10px;
+            border: 2px dashed #52ab98;
+            border-radius: 10px;
+            background: #f9f9f9;
+            width: 80%;
+            cursor: pointer;
+        }
+        input[type="file"]:hover {
+            background: #e8f6ef;
+        }
+        button {
+            background-color: #2b6777;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 25px;
+            margin-top: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #52ab98;
+            transform: scale(1.05);
+        }
+
+        /* -------- Images -------- */
+        img {
+            max-width: 85%;
+            height: auto;
+            margin-top: 15px;
+            border-radius: 15px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+        }
+
+        /* -------- Messages -------- */
+        p {
+            font-size: 1.1rem;
+        }
+        p strong {
+            color: #204051;
+        }
+        .error {
+            color: #ff4d4d;
+            font-weight: 600;
+            background: #ffecec;
+            padding: 10px;
+            border-radius: 8px;
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        /* -------- Animation -------- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.7s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <h1>♻️ Waste Segmentation & Classification using YOLO</h1>
+
+    <div class="card fade-in">
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            <input type="file" name="image" accept="image/*" required>
+            <br>
+            <button type="submit">Upload & Segment</button>
+        </form>
+
+        {% if uploaded_image %}
+            <h2>📷 Uploaded Image</h2>
+            <img src="{{ uploaded_image }}" alt="Uploaded Image">
+        {% endif %}
+
+        {% if prediction %}
+            <h2>🧠 Model Prediction</h2>
+            <p><strong>Detected:</strong> {{ prediction }}</p>
+        {% endif %}
+
+        {% if predicted_image %}
+            <h2>🖼 Segmented Output</h2>
+            <img src="{{ predicted_image }}" alt="Segmented Image">
+        {% endif %}
+    </div>
+</body>
+</html>
