@@ -1,27 +1,23 @@
-from flask import Flask, render_template, request, send_from_directory, g
+from flask import Flask, render_template, request, send_from_directory
 from PIL import Image
 import os
 import uuid
-import time
-import io
-import base64
 from ultralytics import YOLO
 
-# Flask app setup
+# Flask app
 app = Flask(__name__)
 
 # Directories
 UPLOAD_FOLDER = os.path.join("static", "uploaded_images")
+OUTPUT_FOLDER = os.path.join("static", "output")
 MODEL_PATH = "best.pt"
 
-# Ensure upload directory exists
+# Ensure directories exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-# Load the model only once per request
-def get_model():
-    if 'model' not in g:
-        g.model = YOLO(MODEL_PATH)
-    return g.model
+# Load YOLO model
+model = YOLO(MODEL_PATH)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -44,40 +40,28 @@ def index():
                 image = image.convert('RGB')
             image.save(uploaded_path)
 
-            # Start timing the prediction
-            start_time = time.time()
+            # Run YOLO model
+            results = model(uploaded_path, project="static", name="output", save=True, exist_ok=True)
 
-            # Run prediction (no disk saving)
-            model = get_model()
-            results = model(uploaded_path)
-
-            end_time = time.time()
-            print(f"Prediction time: {end_time - start_time:.2f} seconds")
-
-            # Get detected labels
+            # Get predictions
             classes = results[0].names
             labels = set([classes[int(cls)] for cls in results[0].boxes.cls])
-            prediction_result = ", ".join(labels)
 
-            # Convert prediction result image to base64
-            plotted_image = results[0].plot()  # numpy array with drawn boxes
-            img_pil = Image.fromarray(plotted_image)
-            buffered = io.BytesIO()
-            img_pil.save(buffered, format="JPEG")
-            img_base64 = base64.b64encode(buffered.getvalue()).decode()
-            predicted_image_base64 = f"data:image/jpeg;base64,{img_base64}"
+            # Predicted image path
+            predicted_image_path = os.path.join("static", "output", unique_filename)
+            prediction_result = ", ".join(labels)
 
             return render_template(
                 'index.html',
                 uploaded_image=uploaded_path,
-                predicted_image_base64=predicted_image_base64,
+                predicted_image=predicted_image_path,
                 prediction=prediction_result
             )
 
     return render_template('index.html')
 
 
-# Serve static files like uploaded images
+# Serve uploaded and output files if needed (optional for debugging)
 @app.route('/static/<path:filename>')
 def serve_file(filename):
     return send_from_directory('static', filename)
