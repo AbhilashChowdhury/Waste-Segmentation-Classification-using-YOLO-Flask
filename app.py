@@ -14,10 +14,10 @@ app = Flask(__name__)
 UPLOAD_FOLDER = os.path.join("static", "uploaded_images")
 MODEL_PATH = "best.pt"
 
-# Ensure directory exists
+# Ensure upload directory exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Load YOLO model once per request
+# Load the model only once per request
 def get_model():
     if 'model' not in g:
         g.model = YOLO(MODEL_PATH)
@@ -34,52 +34,50 @@ def index():
             return render_template('index.html', error="No selected file.")
 
         if file:
-            # Generate unique filename
+            # Save uploaded image
             file_ext = file.filename.rsplit('.', 1)[1].lower()
             unique_filename = f"{uuid.uuid4()}.{file_ext}"
             uploaded_path = os.path.join(UPLOAD_FOLDER, unique_filename)
 
-            # Save the uploaded image
             image = Image.open(file)
             if image.mode == 'RGBA':
                 image = image.convert('RGB')
             image.save(uploaded_path)
 
-            # Time the prediction
+            # Start timing the prediction
             start_time = time.time()
 
-            # Run YOLO prediction (no disk saving)
+            # Run prediction (no disk saving)
             model = get_model()
             results = model(uploaded_path)
 
             end_time = time.time()
             print(f"Prediction time: {end_time - start_time:.2f} seconds")
 
-            # Get prediction labels
+            # Get detected labels
             classes = results[0].names
             labels = set([classes[int(cls)] for cls in results[0].boxes.cls])
             prediction_result = ", ".join(labels)
 
-            # Plot predictions and convert to base64
-            plotted_image = results[0].plot()
+            # Convert prediction result image to base64
+            plotted_image = results[0].plot()  # numpy array with drawn boxes
             img_pil = Image.fromarray(plotted_image)
             buffered = io.BytesIO()
             img_pil.save(buffered, format="JPEG")
-            img_str = base64.b64encode(buffered.getvalue()).decode()
-
-            # Final image to embed in HTML
-            predicted_image_base64 = f"data:image/jpeg;base64,{img_str}"
+            img_base64 = base64.b64encode(buffered.getvalue()).decode()
+            predicted_image_base64 = f"data:image/jpeg;base64,{img_base64}"
 
             return render_template(
                 'index.html',
                 uploaded_image=uploaded_path,
-                predicted_image=predicted_image_base64,
+                predicted_image_base64=predicted_image_base64,
                 prediction=prediction_result
             )
 
     return render_template('index.html')
 
-# Serve static files (optional)
+
+# Serve static files like uploaded images
 @app.route('/static/<path:filename>')
 def serve_file(filename):
     return send_from_directory('static', filename)
